@@ -4,6 +4,7 @@ from . import schema
 from . import models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
+from typing import List
 
 
 app = FastAPI()
@@ -61,15 +62,15 @@ def update(id, request: schema.Blog, db: Session = Depends(get_db)):
 
 
 
-@app.get('/blog')
+@app.get('/blog', response_model=List[schema.showBlog])
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
 
-@app.get('/blog/{id}', status_code=200)
-def show(id, response: Response, db: Session = Depends(get_db)):
+@app.get('/blog/{id}', status_code=200, response_model=schema.showBlog)
+def read(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
         response.status_code = status.HTTP_404_NOT_FOUND
