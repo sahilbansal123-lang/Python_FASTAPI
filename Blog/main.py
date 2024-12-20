@@ -2,9 +2,12 @@ from fastapi import FastAPI, Depends, status, Response
 from fastapi.exceptions import HTTPException
 from . import schema
 from . import models
+from .Hashing import Hash
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from typing import List
+
+
 
 
 app = FastAPI()
@@ -78,12 +81,14 @@ def read(id, response: Response, db: Session = Depends(get_db)):
     return blog
 
 
+
 @app.post('/user')
 def create_user(request: schema.User, db: Session = Depends(get_db)):
     new_User = models.user(
         name=request.name, 
         email=request.email, 
-        password=request.password)
+        password=Hash.bcrypt
+        (request.password))
     db.add(new_User)
     db.commit()
     db.refresh(new_User)
