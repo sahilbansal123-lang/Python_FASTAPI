@@ -76,3 +76,16 @@ def read(id, response: Response, db: Session = Depends(get_db)):
         response.status_code = status.HTTP_404_NOT_FOUND
         return {'detail':f"Blog with the id {id} not existed"}
     return blog
+
+
+@app.post('/user')
+def create_user(request: schema.User, db: Session = Depends(get_db)):
+    new_User = models.user(
+        name=request.name, 
+        email=request.email, 
+        password=request.password)
+    db.add(new_User)
+    db.commit()
+    db.refresh(new_User)
+    return new_User
+    
