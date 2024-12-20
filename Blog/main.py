@@ -82,7 +82,7 @@ def read(id, response: Response, db: Session = Depends(get_db)):
 
 
 
-@app.post('/user')
+@app.post('/user', response_model=schema.showUser)
 def create_user(request: schema.User, db: Session = Depends(get_db)):
     new_User = models.user(
         name=request.name, 
@@ -93,4 +93,13 @@ def create_user(request: schema.User, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_User)
     return new_User
+
+@app.get('/user/{id}', response_model=schema.showUser)
+def show_User(id, response: Response, db: Session = Depends(get_db)):
+    user = db.query(models.user).filter(models.user.id == id).first()
+    if not user:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {'detail':f"Blog with the id {id} not existed"}
+    return user
+
     
