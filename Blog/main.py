@@ -4,7 +4,7 @@ from . import schema
 from . import models
 from .Hashing import Hash
 from .database import engine, SessionLocal
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from typing import List
 
 
@@ -25,7 +25,7 @@ def get_db():
 
 @app.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
 def create(request: schema.Blog, db: Session = Depends(get_db)):
-    new_blog = models.Blog(title=request.title, body=request.body)
+    new_blog = models.Blog(title=request.title, body=request.body, user_id = 1)
     db.add(new_blog)
     db.commit()
     db.refresh(new_blog)
