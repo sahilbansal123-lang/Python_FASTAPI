@@ -7,59 +7,35 @@ from ..Hashing import Hash
 from ..database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session, relationship
 from typing import List
+from ..repository import blog
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/blog",
+    tags=['Blogs']
+)
 
 
-@router.get('/blog', response_model=List[schema.showBlog], tags=['blogs'])
+@router.get('/', response_model=List[schema.showBlog])
 def all(db: Session = Depends(get_db)):
-    blogs = db.query(models.Blog).all()
-    return blogs
+    return blog.get_all(db)
 
 
-@router.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
+@router.post('/', status_code=status.HTTP_201_CREATED)
 def create(request: schema.Blog, db: Session = Depends(get_db)):
-    new_blog = models.Blog(title=request.title, body=request.body, user_id = 1)
-    db.add(new_blog)
-    db.commit()
-    db.refresh(new_blog)
-    return new_blog
-
-@router.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
-def delete(id, db: Session = Depends(get_db)):
-    ## below line is used for filtering or searchin the blog with specific id
-    blog = db.query(models.Blog).filter(models.Blog.id == id)
-    if not blog.first():
-       raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Blog with id {id} not found"
-        )
-    blog.delete(synchronize_session=False)
-    db.commit()
-    return {'detail':f"Blog with id {id} deleted Sucessfully"}
+    return blog.create_blog(request, db)
 
 
-@router.put('/blog/{id}', status_code= status.HTTP_202_ACCEPTED, tags=['blogs'])
-def update(id, request: schema.Blog, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id)
-    if not blog.first():
-       raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Blog with id {id} not found"
-        )
-    blog.update( 
-        {"title": request.title, "body": request.body},
-        synchronize_session=False
-        )
-    db.commit()
-    return 'Updated sucessfully'
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete(id: int, db: Session = Depends(get_db)):
+    return blog.delete_blog(id, db)
 
 
-@router.get('/blog/{id}', status_code=200, response_model=schema.showBlog, tags=['blogs'])
-def read(id, response: Response, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
-    if not blog:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return {'detail':f"Blog with the id {id} not existed"}
-    return blog
+@router.put('/{id}', status_code= status.HTTP_202_ACCEPTED)
+def update(id: int, request: schema.Blog, db: Session = Depends(get_db)):
+    return blog.update_blog(id, request, db)
+
+
+@router.get('/{id}', status_code=200, response_model=schema.showBlog)
+def read(id: int, db: Session = Depends(get_db)):
+    return blog.get_byid(id, db)

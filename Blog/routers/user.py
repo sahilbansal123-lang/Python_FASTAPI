@@ -7,28 +7,20 @@ from ..Hashing import Hash
 from ..database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session, relationship
 from typing import List
+from ..repository import user
 
-router = APIRouter()
+router = APIRouter(
+     prefix="/user",
+     tags=['User']
+)
 
 
-@router.post('/user', response_model=schema.showUser, tags=['User'])
+@router.post('/', response_model=schema.showUser)
 def create_user(request: schema.User, db: Session = Depends(get_db)):
-    new_User = models.user(
-        name=request.name, 
-        email=request.email, 
-        password=Hash.bcrypt
-        (request.password))
-    db.add(new_User)
-    db.commit()
-    db.refresh(new_User)
-    return new_User
+    return user.create_user(request, db)
 
-@router.get('/user/{id}', response_model=schema.showUser, tags=['User'])
-def show_User(id, response: Response, db: Session = Depends(get_db)):
-    user = db.query(models.user).filter(models.user.id == id).first()
-    if not user:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return {'detail':f"Blog with the id {id} not existed"}
-    return user
+@router.get('/{id}', response_model=schema.showUser)
+def show_User(id: int, db: Session = Depends(get_db)):
+    return user.show_user(id, db)
 
     
