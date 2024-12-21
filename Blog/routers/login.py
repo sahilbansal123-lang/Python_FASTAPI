@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import FastAPI, Depends, status, Response
 from fastapi.exceptions import HTTPException
 from .. import schema
@@ -19,7 +20,7 @@ router = APIRouter(
 
 @router.post('/login')
 def login(
-    request: schema.login, 
+    request: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
     ):
     user = db.query(models.user).filter(models.user.email == request.username).first()
