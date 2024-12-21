@@ -8,6 +8,8 @@ from ..database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session, relationship
 from typing import List
 from ..repository import user
+from datetime import datetime, timedelta, timezone
+from ..JWTtoken import create_access_token
 
 
 
@@ -33,4 +35,6 @@ def login(
         )
     
     # generate JWT TOKEN AND RETURN IT
-    return user
+
+    access_token = create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
